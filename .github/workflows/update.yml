@@ -1,0 +1,86 @@
+name: Update MLB Stats
+
+on:
+  schedule:
+    # Roda todo dia às 10h UTC (7h horário de Brasília) — busca jogos do dia anterior
+    - cron: "0 10 * * *"
+    # Roda todo domingo às 11h UTC — reprocessa os últimos 7 dias
+    - cron: "0 11 * * 0"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Data específica para reprocessar (YYYY-MM-DD). Deixe vazio para rodar o fluxo normal."
+        required: false
+        default: ""
+      reprocess_days:
+        description: "Número de dias para reprocessar (padrão: 1). Use 7 para reprocessamento semanal."
+        required: false
+        default: "1"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install requests pandas numpy
+
+      - name: Definir datas a processar
+        id: dates
+        run: |
+          python3 << 'EOF'
+          import os
+          from datetime import date, timedelta
+
+          # Verifica se foi disparado manualmente com data específica
+          manual_date = os.environ.get("MANUAL_DATE", "").strip()
+          reprocess_days = int(os.environ.get("REPROCESS_DAYS", "1"))
+          is_sunday = date.today().weekday() == 6
+
+          if manual_date:
+              dates = [manual_date]
+          elif is_sunday or reprocess_days > 1:
+              # Reprocessa os últimos 7 dias
+              today = date.today()
+              dates = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, 8)]
+          else:
+              # Busca só ontem
+              dates = [(date.today() - timedelta(days=1)).strftime("%Y-%m-%d")]
+
+          print(f"Datas a processar: {dates}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"dates={','.join(dates)}\n")
+          EOF
+        env:
+          MANUAL_DATE: ${{ github.event.inputs.date }}
+          REPROCESS_DAYS: ${{ github.event.inputs.reprocess_days }}
+
+      - name: Buscar play-by-play
+        run: |
+          IFS=',' read -ra DATES <<< "${{ steps.dates.outputs.dates }}"
+          for d in "${DATES[@]}"; do
+            echo "→ Processando $d..."
+            python scripts/fetch_data.py --date "$d"
+          done
+
+      - name: Agregar estatísticas
+        run: python scripts/build_stats.py
+
+      - name: Gerar HTML
+        run: python scripts/build_html.py
+
+      - name: Commit e push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ docs/
+          git diff --cached --quiet || git commit -m "chore: atualiza stats [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
