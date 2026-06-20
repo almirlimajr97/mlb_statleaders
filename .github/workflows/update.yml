@@ -16,6 +16,14 @@ on:
         description: "Número de dias para reprocessar (padrão: 1). Use 7 para reprocessamento semanal."
         required: false
         default: "1"
+      start_date:
+        description: "Início do intervalo a reprocessar (YYYY-MM-DD). Use junto com end_date."
+        required: false
+        default: ""
+      end_date:
+        description: "Fim do intervalo a reprocessar (YYYY-MM-DD). Use junto com start_date."
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -45,11 +53,21 @@ jobs:
 
           # Verifica se foi disparado manualmente com data específica
           manual_date = os.environ.get("MANUAL_DATE", "").strip()
+          start_date  = os.environ.get("START_DATE", "").strip()
+          end_date    = os.environ.get("END_DATE", "").strip()
           reprocess_days_raw = os.environ.get("REPROCESS_DAYS", "").strip()
           reprocess_days = int(reprocess_days_raw) if reprocess_days_raw else 1
           is_sunday = date.today().weekday() == 6
 
-          if manual_date:
+          if start_date and end_date:
+              # Reprocessa um intervalo explícito (ex: temporada inteira)
+              d0 = date.fromisoformat(start_date)
+              d1 = date.fromisoformat(end_date)
+              if d0 > d1:
+                  d0, d1 = d1, d0
+              n_days = (d1 - d0).days + 1
+              dates = [(d0 + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(n_days)]
+          elif manual_date:
               dates = [manual_date]
           elif is_sunday or reprocess_days > 1:
               # Reprocessa os últimos N dias
@@ -60,13 +78,15 @@ jobs:
               # Busca só ontem
               dates = [(date.today() - timedelta(days=1)).strftime("%Y-%m-%d")]
 
-          print(f"Datas a processar: {dates}")
+          print(f"Datas a processar ({len(dates)}): {dates[:5]}{'...' if len(dates) > 5 else ''}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"dates={','.join(dates)}\n")
           EOF
         env:
           MANUAL_DATE: ${{ github.event.inputs.date }}
           REPROCESS_DAYS: ${{ github.event.inputs.reprocess_days }}
+          START_DATE: ${{ github.event.inputs.start_date }}
+          END_DATE: ${{ github.event.inputs.end_date }}
 
       - name: Buscar play-by-play
         run: |
