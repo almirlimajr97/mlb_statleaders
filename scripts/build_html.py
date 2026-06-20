@@ -1,10 +1,15 @@
 """
 build_html.py
 -------------
-Lê data/df_batters.csv e data/df_pitchers.csv e gera docs/index.html
-no formato de dashboard: cards de líderes na visão geral + abas com
-tabelas completas de batters e pitchers (agregados por jogador, sem
-quebra por time, já que jogadores podem ser trocados durante a temporada).
+Lê data/df_batters.csv e data/df_pitchers.csv e gera:
+    - docs/index.html                    (estrutura/estilo/lógica, leve)
+    - docs/data/batters_<season>.json    (um arquivo por temporada)
+    - docs/data/pitchers_<season>.json   (um arquivo por temporada)
+
+Os dados são particionados por temporada para não esbarrar no limite de
+100MB por arquivo do GitHub conforme acumulamos mais anos de histórico.
+O HTML carrega via fetch() só a temporada selecionada no filtro de Ano,
+recarregando sob demanda quando o usuário troca de ano.
 
 Uso:
     python scripts/build_html.py
@@ -16,6 +21,16 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 DOCS_DIR = Path(__file__).parent.parent / "docs"
+
+# Colunas exportadas para o JSON consumido pelo front-end (uma por temporada).
+B_COLS = ["game_pk", "season", "ref", "game_type", "batting_team", "fielding_team", "batter", "bat_side", "batter_split",
+          "men_on_base", "pitcher", "day_night", "home_away_batting",
+          "PA", "AB", "H", "singles", "doubles", "triples", "HR",
+          "RBI", "BB", "IBB", "SO", "HBP", "SF"]
+P_COLS = ["game_pk", "season", "ref", "game_type", "fielding_team", "batting_team", "pitcher", "pitch_hand", "pitcher_split",
+          "men_on_base", "batter", "day_night", "home_away_pitching",
+          "BF", "AB", "H", "singles", "doubles", "triples", "HR",
+          "BB", "IBB", "SO", "HBP", "SF", "total_outs"]
 
 
 def load_data():
@@ -41,19 +56,7 @@ def build_html(db: pd.DataFrame, dp: pd.DataFrame):
     }
     month_names_json = json.dumps(MONTH_NAMES, ensure_ascii=False)
 
-    b_cols = ["game_pk", "season", "ref", "game_type", "batting_team", "fielding_team", "batter", "bat_side", "batter_split",
-              "men_on_base", "pitcher", "day_night", "home_away_batting",
-              "PA", "AB", "H", "singles", "doubles", "triples", "HR",
-              "RBI", "BB", "IBB", "SO", "HBP", "SF"]
-    p_cols = ["game_pk", "season", "ref", "game_type", "fielding_team", "batting_team", "pitcher", "pitch_hand", "pitcher_split",
-              "men_on_base", "batter", "day_night", "home_away_pitching",
-              "BF", "AB", "H", "singles", "doubles", "triples", "HR",
-              "BB", "IBB", "SO", "HBP", "SF", "total_outs"]
-
-    b_records = db[[c for c in b_cols if c in db.columns]].to_dict(orient="records")
-    p_records = dp[[c for c in p_cols if c in dp.columns]].to_dict(orient="records")
-
-    season = str(db["season"].iloc[0]) if "season" in db.columns else "2026"
+    season = str(latest_season) if latest_season != "" else "2026"
 
     html = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -194,9 +197,27 @@ td:nth-child(2){{text-align:left;font-weight:500;color:var(--text);white-space:n
 
 <script>
 let BRAW=[], PRAW=[];
+const SEASONS={json.dumps(seasons)};
 const MONTH_NAMES={month_names_json};
 let sortBatK='PA', sortBatAsc=false;
 let sortPitK='BF', sortPitAsc=false;
+
+// Cache em memória por temporada, para não re-buscar o mesmo ano duas vezes.
+const batCache = {{}};
+const pitCache = {{}};
+
+async function loadSeason(season){{
+  if(!batCache[season]){{
+    const [bRes, pRes] = await Promise.all([
+      fetch(`data/batters_${{season}}.json`),
+      fetch(`data/pitchers_${{season}}.json`),
+    ]);
+    batCache[season] = await bRes.json();
+    pitCache[season] = await pRes.json();
+  }}
+  BRAW = batCache[season];
+  PRAW = pitCache[season];
+}}
 
 function refLabel(ref){{
   const s=String(ref);
@@ -491,14 +512,14 @@ themeToggle.addEventListener('click', ()=>{{
 document.getElementById('b-season').value = '{latest_season}';
 document.getElementById('p-season').value = '{latest_season}';
 
-async function init(){{
+let currentSeason = '{latest_season}';
+
+async function switchSeason(season){{
+  currentSeason = season;
+  document.getElementById('loading-bar').style.display = 'block';
+  document.getElementById('loading-bar').textContent = `Carregando temporada ${{season}}...`;
   try {{
-    const [bRes, pRes] = await Promise.all([
-      fetch('data/batters.json'),
-      fetch('data/pitchers.json'),
-    ]);
-    BRAW = await bRes.json();
-    PRAW = await pRes.json();
+    await loadSeason(season);
   }} catch(e) {{
     document.getElementById('loading-bar').textContent = 'Erro ao carregar dados.';
     console.error('Erro ao carregar dados:', e);
@@ -509,36 +530,55 @@ async function init(){{
   renderBat();
   renderPit();
 }}
-init();
+
+document.getElementById('b-season').addEventListener('change', (e)=>{{
+  document.getElementById('p-season').value = e.target.value;
+  switchSeason(e.target.value);
+}});
+document.getElementById('p-season').addEventListener('change', (e)=>{{
+  document.getElementById('b-season').value = e.target.value;
+  switchSeason(e.target.value);
+}});
+
+switchSeason(currentSeason);
 </script>
 </body>
 </html>"""
 
-    return html, b_records, p_records
+    return html, seasons
 
 
 def main():
     print("Carregando dados...")
     db, dp = load_data()
 
-    print("Gerando HTML e dados...")
+    print("Gerando HTML...")
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
     DATA_OUT_DIR = DOCS_DIR / "data"
     DATA_OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    html, b_records, p_records = build_html(db, dp)
+    html, seasons = build_html(db, dp)
 
     out_html = DOCS_DIR / "index.html"
     out_html.write_text(html, encoding="utf-8")
     print(f"  Salvo em {out_html} ({len(html):,} chars)")
 
-    out_bat = DATA_OUT_DIR / "batters.json"
-    out_bat.write_text(json.dumps(b_records, ensure_ascii=False), encoding="utf-8")
-    print(f"  Salvo em {out_bat} ({out_bat.stat().st_size / 1024 / 1024:.1f} MB)")
+    print("Gerando dados por temporada...")
+    for season in seasons:
+        db_s = db[db["season"] == season]
+        dp_s = dp[dp["season"] == season]
 
-    out_pit = DATA_OUT_DIR / "pitchers.json"
-    out_pit.write_text(json.dumps(p_records, ensure_ascii=False), encoding="utf-8")
-    print(f"  Salvo em {out_pit} ({out_pit.stat().st_size / 1024 / 1024:.1f} MB)")
+        b_records = db_s[[c for c in B_COLS if c in db_s.columns]].to_dict(orient="records")
+        p_records = dp_s[[c for c in P_COLS if c in dp_s.columns]].to_dict(orient="records")
+
+        out_bat = DATA_OUT_DIR / f"batters_{season}.json"
+        out_bat.write_text(json.dumps(b_records, ensure_ascii=False), encoding="utf-8")
+
+        out_pit = DATA_OUT_DIR / f"pitchers_{season}.json"
+        out_pit.write_text(json.dumps(p_records, ensure_ascii=False), encoding="utf-8")
+
+        print(f"  {season}: batters={out_bat.stat().st_size/1024/1024:.1f}MB, "
+              f"pitchers={out_pit.stat().st_size/1024/1024:.1f}MB")
 
 
 if __name__ == "__main__":
