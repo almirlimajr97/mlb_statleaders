@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MLB Stats 2025</title>
+<title>MLB Stats 2026</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.1.0/iconfont/tabler-icons.min.css">
 <style>
 :root{
@@ -80,7 +80,7 @@ td:nth-child(2){text-align:left;font-weight:500;color:var(--text);white-space:no
 </head>
 <body>
 <header>
-  <h1><i class="ti ti-baseball" aria-hidden="true"></i>MLB Stats 2025</h1>
+  <h1><i class="ti ti-baseball" aria-hidden="true"></i>MLB Stats 2026</h1>
   <nav>
     <button class="nav-btn active" data-page="overview"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Visão geral</button>
     <button class="nav-btn" data-page="bat"><i class="ti ti-baseball-bat" aria-hidden="true"></i>Batters</button>
@@ -137,9 +137,27 @@ td:nth-child(2){text-align:left;font-weight:500;color:var(--text);white-space:no
 
 <script>
 let BRAW=[], PRAW=[];
+const SEASONS=[2025, 2026];
 const MONTH_NAMES={"01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"};
 let sortBatK='PA', sortBatAsc=false;
 let sortPitK='BF', sortPitAsc=false;
+
+// Cache em memória por temporada, para não re-buscar o mesmo ano duas vezes.
+const batCache = {};
+const pitCache = {};
+
+async function loadSeason(season){
+  if(!batCache[season]){
+    const [bRes, pRes] = await Promise.all([
+      fetch(`data/batters_${season}.json`),
+      fetch(`data/pitchers_${season}.json`),
+    ]);
+    batCache[season] = await bRes.json();
+    pitCache[season] = await pRes.json();
+  }
+  BRAW = batCache[season];
+  PRAW = pitCache[season];
+}
 
 function refLabel(ref){
   const s=String(ref);
@@ -434,14 +452,14 @@ themeToggle.addEventListener('click', ()=>{
 document.getElementById('b-season').value = '2026';
 document.getElementById('p-season').value = '2026';
 
-async function init(){
+let currentSeason = '2026';
+
+async function switchSeason(season){
+  currentSeason = season;
+  document.getElementById('loading-bar').style.display = 'block';
+  document.getElementById('loading-bar').textContent = `Carregando temporada ${season}...`;
   try {
-    const [bRes, pRes] = await Promise.all([
-      fetch('data/batters.json'),
-      fetch('data/pitchers.json'),
-    ]);
-    BRAW = await bRes.json();
-    PRAW = await pRes.json();
+    await loadSeason(season);
   } catch(e) {
     document.getElementById('loading-bar').textContent = 'Erro ao carregar dados.';
     console.error('Erro ao carregar dados:', e);
@@ -452,7 +470,17 @@ async function init(){
   renderBat();
   renderPit();
 }
-init();
+
+document.getElementById('b-season').addEventListener('change', (e)=>{
+  document.getElementById('p-season').value = e.target.value;
+  switchSeason(e.target.value);
+});
+document.getElementById('p-season').addEventListener('change', (e)=>{
+  document.getElementById('b-season').value = e.target.value;
+  switchSeason(e.target.value);
+});
+
+switchSeason(currentSeason);
 </script>
 </body>
 </html>
