@@ -18,7 +18,6 @@ from pathlib import Path
 
 # ── Configurações ──────────────────────────────────────────
 BASE_URL        = "https://statsapi.mlb.com/api/v1"
-SEASON_START    = "2026-03-25"   # atualizar a cada temporada
 FINAL_STATUSES  = {"Final", "Completed Early"}
 RAW_DIR         = Path(__file__).parent.parent / "data" / "raw"
 SESSION         = requests.Session()
@@ -208,9 +207,10 @@ def main():
 
     game_date = args.date or (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-    # Valida que a data é >= início da temporada
-    if game_date < SEASON_START:
-        print(f"Data {game_date} anterior ao início da temporada ({SEASON_START}). Nada a fazer.")
+    # Sanity check: não busca datas absurdamente antigas (a MLB Stats API
+    # tem dados desde 1876, mas isso evita erro de digitação na data).
+    if game_date < "1900-01-01":
+        print(f"Data {game_date} parece inválida. Nada a fazer.")
         return
 
     print(f"Buscando jogos de {game_date}...")
