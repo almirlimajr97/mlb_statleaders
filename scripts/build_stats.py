@@ -99,7 +99,6 @@ def build_batters(df: pd.DataFrame) -> pd.DataFrame:
             SF      =("event", lambda x: (x == "Sac Fly").sum()),
         )
         .reset_index()
-        .drop(columns=["batter_id", "pitcher_id"])
     )
 
     agg["RBI"] = agg["RBI"].fillna(0).astype(int)
@@ -147,31 +146,31 @@ def build_pitchers(df: pd.DataFrame) -> pd.DataFrame:
             total_outs=("total_outs",  "sum"),
         )
         .reset_index()
-        .drop(columns=["pitcher_id"])
     )
 
     # Outs de baserunning (caught stealing, pickoff) não carregam a mesma
     # granularidade de matchup dos pitches, então são somados à parte por
-    # pitcher+game_pk e distribuídos na primeira linha desse jogo.
+    # pitcher_id+game_pk (não pelo nome, que pode ter homônimos) e
+    # distribuídos na primeira linha desse jogo.
     df_base = df[df["record_type"] == "baserunning"].copy()
     if not df_base.empty:
         base_outs = (
             df_base
-            .groupby(["pitcher", "game_pk"], dropna=False)["total_outs"]
+            .groupby(["pitcher_id", "game_pk"], dropna=False)["total_outs"]
             .sum()
             .reset_index()
             .rename(columns={"total_outs": "baserunning_outs"})
         )
 
-        # Identifica a primeira linha de cada pitcher+game_pk no agg para
+        # Identifica a primeira linha de cada pitcher_id+game_pk no agg para
         # receber os outs extras (evita duplicar contagem em várias linhas).
         first_idx = (
-            agg.sort_values(["pitcher", "game_pk"])
-            .groupby(["pitcher", "game_pk"])
+            agg.sort_values(["pitcher_id", "game_pk"])
+            .groupby(["pitcher_id", "game_pk"])
             .head(1)
             .index
         )
-        agg = agg.merge(base_outs, on=["pitcher", "game_pk"], how="left")
+        agg = agg.merge(base_outs, on=["pitcher_id", "game_pk"], how="left")
         agg["baserunning_outs"] = agg["baserunning_outs"].fillna(0)
         mask_first = agg.index.isin(first_idx)
         agg.loc[mask_first, "total_outs"] += agg.loc[mask_first, "baserunning_outs"]

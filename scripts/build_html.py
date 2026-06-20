@@ -27,11 +27,11 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 DOCS_DIR = Path(__file__).parent.parent / "docs"
 
 # Colunas exportadas para o JSON consumido pelo front-end (uma por temporada).
-B_COLS = ["game_pk", "season", "ref", "game_type", "venue", "batting_team", "fielding_team", "batter", "bat_side", "batter_split",
+B_COLS = ["game_pk", "season", "ref", "game_type", "venue", "batting_team", "fielding_team", "batter", "batter_id", "bat_side", "batter_split",
           "men_on_base", "pitcher", "day_night", "home_away_batting",
           "PA", "AB", "H", "singles", "doubles", "triples", "HR",
           "RBI", "BB", "IBB", "SO", "HBP", "SF"]
-P_COLS = ["game_pk", "season", "ref", "game_type", "venue", "fielding_team", "batting_team", "pitcher", "pitch_hand", "pitcher_split",
+P_COLS = ["game_pk", "season", "ref", "game_type", "venue", "fielding_team", "batting_team", "pitcher", "pitcher_id", "pitch_hand", "pitcher_split",
           "men_on_base", "batter", "day_night", "home_away_pitching",
           "BF", "AB", "H", "singles", "doubles", "triples", "HR",
           "BB", "IBB", "SO", "HBP", "SF", "total_outs"]
@@ -335,7 +335,7 @@ function cls(v,hi,md,inv=false){{
 function aggBat(rows){{
   const m={{}};
   for(const r of rows){{
-    const k=r.batter;
+    const k=r.batter_id;
     if(!m[k]) m[k]={{batter:r.batter,games:new Set(),PA:0,AB:0,H:0,singles:0,doubles:0,triples:0,HR:0,RBI:0,BB:0,IBB:0,SO:0,HBP:0,SF:0}};
     const a=m[k];
     a.games.add(r.game_pk);
@@ -354,7 +354,7 @@ function aggBat(rows){{
 function aggPit(rows){{
   const m={{}};
   for(const r of rows){{
-    const k=r.pitcher;
+    const k=r.pitcher_id;
     if(!m[k]) m[k]={{pitcher:r.pitcher,games:new Set(),BF:0,AB:0,H:0,singles:0,doubles:0,triples:0,HR:0,BB:0,IBB:0,SO:0,HBP:0,SF:0,outs:0}};
     const a=m[k];
     a.games.add(r.game_pk);
