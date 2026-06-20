@@ -40,6 +40,15 @@ def load_raw() -> pd.DataFrame:
 
     df = pd.concat(dfs, ignore_index=True)
     print(f"  Total de linhas: {len(df)}")
+
+    # Arquivos raw antigos (gerados antes da coluna game_type existir) não
+    # têm essa coluna. Garante que ela sempre exista, tratando ausência
+    # como Regular Season (comportamento padrão antes dos playoffs serem
+    # incluídos no pipeline).
+    if "game_type" not in df.columns:
+        df["game_type"] = "R"
+    else:
+        df["game_type"] = df["game_type"].fillna("R")
     return df
 
 
