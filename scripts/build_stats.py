@@ -23,6 +23,12 @@ DATA_DIR    = Path(__file__).parent.parent / "data"
 NOT_AB = ["Walk", "Intent Walk", "Hit By Pitch", "Sac Fly", "Sac Bunt", "Catcher Interference"]
 HITS   = ["Single", "Double", "Triple", "Home Run"]
 
+# Eventos de baserunning que não representam uma plate appearance concluída
+# (o batter não terminou o turno por causa dessa jogada). Não devem contar
+# nem como PA nem como AB, mesmo quando aparecem como "event" de uma linha
+# record_type == "pitch".
+EXCLUDE_PA = "Pickoff|Caught Stealing|Runner Out|Balk|Wild Pitch|Stolen Base"
+
 
 def load_raw() -> pd.DataFrame:
     """Lê e concatena todos os CSVs de data/raw/."""
@@ -78,8 +84,8 @@ def build_batters(df: pd.DataFrame) -> pd.DataFrame:
             "venue", "day_night", "home_away_batting",
         ], dropna=False)
         .agg(
-            PA      =("event", "count"),
-            AB      =("event", lambda x: (x.notna() & ~x.isin(NOT_AB)).sum()),
+            PA      =("event", lambda x: (x.notna() & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
+            AB      =("event", lambda x: (x.notna() & ~x.isin(NOT_AB) & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
             H       =("event", lambda x: x.isin(HITS).sum()),
             singles =("event", lambda x: (x == "Single").sum()),
             doubles =("event", lambda x: (x == "Double").sum()),
@@ -126,8 +132,8 @@ def build_pitchers(df: pd.DataFrame) -> pd.DataFrame:
             "venue", "day_night", "home_away_pitching",
         ], dropna=False)
         .agg(
-            BF        =("event",       "count"),
-            AB        =("event",       lambda x: (x.notna() & ~x.isin(NOT_AB)).sum()),
+            BF        =("event",       lambda x: (x.notna() & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
+            AB        =("event",       lambda x: (x.notna() & ~x.isin(NOT_AB) & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
             H         =("event",       lambda x: x.isin(HITS).sum()),
             singles   =("event",       lambda x: (x == "Single").sum()),
             doubles   =("event",       lambda x: (x == "Double").sum()),
