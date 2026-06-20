@@ -93,7 +93,7 @@ def build_html(db: pd.DataFrame, dp: pd.DataFrame):
     seasons_opts = "".join(f'<option>{s}</option>' for s in seasons)
     latest_season = seasons[-1] if seasons else ""
 
-    last_updated = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%b %d %Y, %H:%M (Brasília time)")
+    last_updated = datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%b %d %Y, %H:%M")
 
     MONTH_NAMES = {
         "01": "January", "02": "February", "03": "March", "04": "April",
@@ -130,9 +130,9 @@ def build_html(db: pd.DataFrame, dp: pd.DataFrame):
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .15s,color .15s}}
 
 header{{padding:1.1rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:20}}
-.title-block{{display:flex;flex-direction:column;gap:2px}}
+.title-block{{display:flex;flex-direction:column;gap:2px;text-align:left}}
 header h1{{font-size:1.15rem;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:8px;white-space:nowrap}}
-.last-updated{{font-size:11px;color:var(--text3);padding-left:26px}}
+.last-updated{{font-size:11px;color:var(--text3)}}
 nav{{display:flex;gap:4px;margin-left:auto}}
 .nav-btn{{padding:7px 16px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}}
 .nav-btn:hover{{color:var(--text);background:rgba(128,128,128,.08)}}
@@ -189,7 +189,7 @@ td:nth-child(2){{text-align:left;font-weight:500;color:var(--text);white-space:n
 <body>
 <header>
   <div class="title-block">
-    <h1><i class="ti ti-baseball" aria-hidden="true"></i>Leaderboard - MLB (2022 - present)</h1>
+    <h1>Leaderboard - MLB (2022 - present)</h1>
     <div class="last-updated">Last updated in {last_updated}</div>
   </div>
   <nav>
