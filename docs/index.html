@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MLB Stats 2026</title>
+<title>Leaderboard - MLB (2022 - present)</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.1.0/iconfont/tabler-icons.min.css">
 <style>
 :root{
@@ -24,7 +24,9 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .15s,color .15s}
 
 header{padding:1.1rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:20}
+.title-block{display:flex;flex-direction:column;gap:2px}
 header h1{font-size:1.15rem;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.last-updated{font-size:11px;color:var(--text3);padding-left:26px}
 nav{display:flex;gap:4px;margin-left:auto}
 .nav-btn{padding:7px 16px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
 .nav-btn:hover{color:var(--text);background:rgba(128,128,128,.08)}
@@ -80,73 +82,78 @@ td:nth-child(2){text-align:left;font-weight:500;color:var(--text);white-space:no
 </head>
 <body>
 <header>
-  <h1><i class="ti ti-baseball" aria-hidden="true"></i>MLB Stats 2026</h1>
+  <div class="title-block">
+    <h1><i class="ti ti-baseball" aria-hidden="true"></i>Leaderboard - MLB (2022 - present)</h1>
+    <div class="last-updated">Last updated in Jun 20 2026, 18:33 (Brasília time)</div>
+  </div>
   <nav>
-    <button class="nav-btn active" data-page="overview"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Visão geral</button>
+    <button class="nav-btn active" data-page="overview"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Overview</button>
     <button class="nav-btn" data-page="bat"><i class="ti ti-baseball-bat" aria-hidden="true"></i>Batters</button>
     <button class="nav-btn" data-page="pit"><i class="ti ti-circle-dot" aria-hidden="true"></i>Pitchers</button>
   </nav>
-  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar tema claro/escuro"><i class="ti ti-moon" aria-hidden="true" id="theme-icon"></i></button>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme"><i class="ti ti-moon" aria-hidden="true" id="theme-icon"></i></button>
 </header>
-<div id="loading-bar" style="font-size:12px;color:var(--text2);padding:.5rem 2rem;border-bottom:1px solid var(--border)">Carregando dados...</div>
+<div id="loading-bar" style="font-size:12px;color:var(--text2);padding:.5rem 2rem;border-bottom:1px solid var(--border)">Loading data...</div>
 
 <div class="page active" id="page-overview">
-  <div class="section-title">Líderes — batting</div>
+  <div class="section-title">Batting Leaders</div>
   <div class="kpi-grid" id="kpi-bat"></div>
-  <div class="section-title">Líderes — pitching</div>
+  <div class="section-title">Pitching Leaders</div>
   <div class="kpi-grid" id="kpi-pit"></div>
 </div>
 
 <div class="page" id="page-bat">
   <div class="filters">
-    <div class="fg"><label>Jogador</label><input id="b-q" placeholder="Buscar..."/></div>
-    <div class="fg"><label>Ano</label><select id="b-season"><option>2025</option><option>2026</option></select></div>
-    <div class="fg"><label>Tipo de jogo</label><select id="b-gt"><option value="">Todos</option><option value="R">Regular Season</option><option value="playoffs">Playoffs</option></select></div>
-    <div class="fg"><label>Mês</label><select id="b-ref"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Time (bat)</label><select id="b-tm"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Adversário</label><select id="b-ft"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Lado</label><select id="b-bs"><option value="">Ambos</option><option value="R">Direita (R)</option><option value="L">Esquerda (L)</option></select></div>
-    <div class="fg"><label>Split</label><select id="b-sp"><option value="">Todos</option><option value="vs_RHP">vs RHP</option><option value="vs_LHP">vs LHP</option></select></div>
-    <div class="fg"><label>Situação</label><select id="b-mo"><option value="">Todas</option><option value="Empty">Empty</option><option value="Men_On">Men On</option><option value="RISP">RISP</option><option value="Loaded">Loaded</option></select></div>
-    <div class="fg"><label>Home/Away</label><select id="b-ha"><option value="">Todos</option><option value="home">Home</option><option value="away">Away</option></select></div>
-    <div class="fg"><label>Mín. PA</label><input id="b-mpa" type="number" value="10" min="1" style="width:65px"/></div>
+    <div class="fg"><label>Player</label><input id="b-q" placeholder="Search..."/></div>
+    <div class="fg"><label>Year</label><select id="b-season"><option value="all">All</option><option>2025</option><option>2026</option></select></div>
+    <div class="fg"><label>Game Type</label><select id="b-gt"><option value="">All</option><option value="R" selected>Regular Season</option><option value="playoffs">Playoffs</option></select></div>
+    <div class="fg"><label>Month</label><select id="b-ref"><option value="">All</option></select></div>
+    <div class="fg"><label>Team</label><select id="b-tm"><option value="">All</option></select></div>
+    <div class="fg"><label>Opponent</label><select id="b-ft"><option value="">All</option></select></div>
+    <div class="fg"><label>Venue</label><select id="b-vn"><option value="">All</option></select></div>
+    <div class="fg"><label>Bat Side</label><select id="b-bs"><option value="">Both</option><option value="R">Right (R)</option><option value="L">Left (L)</option></select></div>
+    <div class="fg"><label>Split</label><select id="b-sp"><option value="">All</option><option value="vs_RHP">vs RHP</option><option value="vs_LHP">vs LHP</option></select></div>
+    <div class="fg"><label>Situation</label><select id="b-mo"><option value="">All</option><option value="Empty">Empty</option><option value="Men_On">Men On</option><option value="RISP">RISP</option><option value="Loaded">Loaded</option></select></div>
+    <div class="fg"><label>Home/Away</label><select id="b-ha"><option value="">All</option><option value="home">Home</option><option value="away">Away</option></select></div>
+    <div class="fg"><label>Min. PA</label><input id="b-mpa" type="number" value="10" min="1" style="width:65px"/></div>
   </div>
   <div class="info-bar" id="b-info"></div>
   <div class="wrap"><table><thead id="b-thead"></thead><tbody id="b-tb"></tbody></table></div>
-  <div class="empty" id="b-emp" style="display:none">Nenhum resultado encontrado.</div>
+  <div class="empty" id="b-emp" style="display:none">No results found.</div>
 </div>
 
 <div class="page" id="page-pit">
   <div class="filters">
-    <div class="fg"><label>Pitcher</label><input id="p-q" placeholder="Buscar..."/></div>
-    <div class="fg"><label>Ano</label><select id="p-season"><option>2025</option><option>2026</option></select></div>
-    <div class="fg"><label>Tipo de jogo</label><select id="p-gt"><option value="">Todos</option><option value="R">Regular Season</option><option value="playoffs">Playoffs</option></select></div>
-    <div class="fg"><label>Mês</label><select id="p-ref"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Time (pit)</label><select id="p-tm"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Adversário</label><select id="p-ft"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Mão</label><select id="p-ph"><option value="">Ambas</option><option value="R">Direita (R)</option><option value="L">Esquerda (L)</option></select></div>
-    <div class="fg"><label>Split</label><select id="p-sp"><option value="">Todos</option><option value="vs_RHB">vs RHB</option><option value="vs_LHB">vs LHB</option></select></div>
-    <div class="fg"><label>Situação</label><select id="p-mo"><option value="">Todas</option><option value="Empty">Empty</option><option value="Men_On">Men On</option><option value="RISP">RISP</option><option value="Loaded">Loaded</option></select></div>
-    <div class="fg"><label>Home/Away</label><select id="p-ha"><option value="">Todos</option><option value="home">Home</option><option value="away">Away</option></select></div>
-    <div class="fg"><label>Mín. BF</label><input id="p-mbf" type="number" value="10" min="1" style="width:65px"/></div>
+    <div class="fg"><label>Pitcher</label><input id="p-q" placeholder="Search..."/></div>
+    <div class="fg"><label>Year</label><select id="p-season"><option value="all">All</option><option>2025</option><option>2026</option></select></div>
+    <div class="fg"><label>Game Type</label><select id="p-gt"><option value="">All</option><option value="R" selected>Regular Season</option><option value="playoffs">Playoffs</option></select></div>
+    <div class="fg"><label>Month</label><select id="p-ref"><option value="">All</option></select></div>
+    <div class="fg"><label>Team</label><select id="p-tm"><option value="">All</option></select></div>
+    <div class="fg"><label>Opponent</label><select id="p-ft"><option value="">All</option></select></div>
+    <div class="fg"><label>Venue</label><select id="p-vn"><option value="">All</option></select></div>
+    <div class="fg"><label>Hand</label><select id="p-ph"><option value="">Both</option><option value="R">Right (R)</option><option value="L">Left (L)</option></select></div>
+    <div class="fg"><label>Split</label><select id="p-sp"><option value="">All</option><option value="vs_RHB">vs RHB</option><option value="vs_LHB">vs LHB</option></select></div>
+    <div class="fg"><label>Situation</label><select id="p-mo"><option value="">All</option><option value="Empty">Empty</option><option value="Men_On">Men On</option><option value="RISP">RISP</option><option value="Loaded">Loaded</option></select></div>
+    <div class="fg"><label>Home/Away</label><select id="p-ha"><option value="">All</option><option value="home">Home</option><option value="away">Away</option></select></div>
+    <div class="fg"><label>Min. BF</label><input id="p-mbf" type="number" value="10" min="1" style="width:65px"/></div>
   </div>
   <div class="info-bar" id="p-info"></div>
   <div class="wrap"><table><thead id="p-thead"></thead><tbody id="p-tb"></tbody></table></div>
-  <div class="empty" id="p-emp" style="display:none">Nenhum resultado encontrado.</div>
+  <div class="empty" id="p-emp" style="display:none">No results found.</div>
 </div>
 
 <script>
 let BRAW=[], PRAW=[];
 const SEASONS=[2025, 2026];
-const MONTH_NAMES={"01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"};
+const MONTH_NAMES={"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June", "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "December"};
 let sortBatK='PA', sortBatAsc=false;
 let sortPitK='BF', sortPitAsc=false;
 
-// Cache em memória por temporada, para não re-buscar o mesmo ano duas vezes.
+// In-memory cache per season, so we never re-fetch the same year twice.
 const batCache = {};
 const pitCache = {};
 
-async function loadSeason(season){
+async function fetchSeasonData(season){
   if(!batCache[season]){
     const [bRes, pRes] = await Promise.all([
       fetch(`data/batters_${season}.json`),
@@ -155,8 +162,18 @@ async function loadSeason(season){
     batCache[season] = await bRes.json();
     pitCache[season] = await pRes.json();
   }
-  BRAW = batCache[season];
-  PRAW = pitCache[season];
+}
+
+async function loadSeason(season){
+  if(season === 'all'){
+    await Promise.all(SEASONS.map(s=>fetchSeasonData(s)));
+    BRAW = SEASONS.flatMap(s=>batCache[s]);
+    PRAW = SEASONS.flatMap(s=>pitCache[s]);
+  } else {
+    await fetchSeasonData(season);
+    BRAW = batCache[season];
+    PRAW = pitCache[season];
+  }
 }
 
 function refLabel(ref){
@@ -165,32 +182,40 @@ function refLabel(ref){
   return (MONTH_NAMES[mm]||mm)+'/'+yyyy;
 }
 
-// Repopula Mês/Time/Adversário com base no Ano selecionado, preservando
-// a seleção atual quando ainda válida (ex: time que existe nos dois anos).
+// Repopulates Month/Team/Opponent/Venue based on the selected Year,
+// preserving the current selection when still valid (e.g. a team that
+// exists in both years).
 function refreshDependentFilters(prefix, rawData, teamField, oppField){
   const seasonVal = document.getElementById(prefix+'-season').value;
-  const scoped = seasonVal ? rawData.filter(r=>String(r.season)===seasonVal) : rawData;
+  const scoped = (seasonVal && seasonVal !== 'all') ? rawData.filter(r=>String(r.season)===seasonVal) : rawData;
 
   const refSel = document.getElementById(prefix+'-ref');
   const curRef = refSel.value;
   const refs = [...new Set(scoped.map(r=>String(r.ref)))].sort();
-  refSel.innerHTML = '<option value="">Todos</option>' +
+  refSel.innerHTML = '<option value="">All</option>' +
     refs.map(r=>`<option value="${r}">${refLabel(r)}</option>`).join('');
   if(refs.includes(curRef)) refSel.value = curRef;
 
   const tmSel = document.getElementById(prefix+'-tm');
   const curTm = tmSel.value;
   const teams = [...new Set(scoped.map(r=>r[teamField]).filter(Boolean))].sort();
-  tmSel.innerHTML = '<option value="">Todos</option>' +
+  tmSel.innerHTML = '<option value="">All</option>' +
     teams.map(t=>`<option>${t}</option>`).join('');
   if(teams.includes(curTm)) tmSel.value = curTm;
 
   const ftSel = document.getElementById(prefix+'-ft');
   const curFt = ftSel.value;
   const opps = [...new Set(scoped.map(r=>r[oppField]).filter(Boolean))].sort();
-  ftSel.innerHTML = '<option value="">Todos</option>' +
+  ftSel.innerHTML = '<option value="">All</option>' +
     opps.map(t=>`<option>${t}</option>`).join('');
   if(opps.includes(curFt)) ftSel.value = curFt;
+
+  const vnSel = document.getElementById(prefix+'-vn');
+  const curVn = vnSel.value;
+  const venues = [...new Set(scoped.map(r=>r.venue).filter(Boolean))].sort();
+  vnSel.innerHTML = '<option value="">All</option>' +
+    venues.map(v=>`<option>${v}</option>`).join('');
+  if(venues.includes(curVn)) vnSel.value = curVn;
 }
 
 function fmt3(v){ return v===0?'.000':v.toFixed(3).replace('0.','.'); }
@@ -242,8 +267,8 @@ function aggPit(rows){
   });
 }
 
-const MIN_PA_KPI = 15;
-const MIN_BF_KPI = 15;
+const MIN_PA_KPI = 100;
+const MIN_BF_KPI = 100;
 
 function kpiCard(label, icon, sorted, key, fmt){
   return `<div class="kpi-card">
@@ -262,8 +287,8 @@ function top5(rows,key,asc=false){
 
 function renderKPIs(){
   const latestSeason = '2026';
-  const batScoped = BRAW.filter(r=>String(r.season)===latestSeason);
-  const pitScoped = PRAW.filter(r=>String(r.season)===latestSeason);
+  const batScoped = batCache[latestSeason] || [];
+  const pitScoped = pitCache[latestSeason] || [];
   const batAgg = aggBat(batScoped).filter(a=>a.PA>=MIN_PA_KPI);
   const pitAgg = aggPit(pitScoped).filter(a=>a.BF>=MIN_BF_KPI);
 
@@ -277,7 +302,7 @@ function renderKPIs(){
   document.getElementById('kpi-pit').innerHTML = [
     kpiCard('Strikeouts (K)','ti-target',top5(pitAgg,'SO'),'SO',v=>v),
     kpiCard('K%','ti-percentage',top5(pitAgg,'Kpct'),'Kpct',fmtPct),
-    kpiCard('BAA (menor)','ti-shield',top5(pitAgg,'BAA',true),'BAA',fmt3),
+    kpiCard('BAA (lowest)','ti-shield',top5(pitAgg,'BAA',true),'BAA',fmt3),
     kpiCard('Innings (IP)','ti-clock',top5(pitAgg,'outs'),'outs',v=>fmtIP(v)),
   ].join('');
 }
@@ -290,6 +315,7 @@ function renderBat(){
   const gt=document.getElementById('b-gt').value;
   const tm=document.getElementById('b-tm').value;
   const ft=document.getElementById('b-ft').value;
+  const vn=document.getElementById('b-vn').value;
   const bs=document.getElementById('b-bs').value;
   const sp=document.getElementById('b-sp').value;
   const mo=document.getElementById('b-mo').value;
@@ -298,19 +324,19 @@ function renderBat(){
 
   let rows=BRAW.filter(r=>
     (!q||r.batter.toLowerCase().includes(q))&&
-    (!season||String(r.season)===season)&&(!ref||String(r.ref)===ref)&&
+    (!season||season==='all'||String(r.season)===season)&&(!ref||String(r.ref)===ref)&&
     (!gt||(gt==='R'?r.game_type==='R':r.game_type!=='R'))&&
-    (!tm||r.batting_team===tm)&&(!ft||r.fielding_team===ft)&&
+    (!tm||r.batting_team===tm)&&(!ft||r.fielding_team===ft)&&(!vn||r.venue===vn)&&
     (!bs||r.bat_side===bs)&&(!sp||r.batter_split===sp)&&
     (!mo||r.men_on_base===mo)&&(!ha||r.home_away_batting===ha)
   );
   let data=aggBat(rows).filter(a=>a.PA>=mpa);
   data.sort((a,b)=>{let av=a[sortBatK],bv=b[sortBatK];if(typeof av==='string'){av=av.toLowerCase();bv=bv.toLowerCase();}return sortBatAsc?(av>bv?1:-1):(av<bv?1:-1);});
 
-  document.getElementById('b-info').innerHTML=`Exibindo <b>${data.length}</b> jogadores · <b>${rows.length}</b> linhas · Mín. <b>${mpa} PA</b>`;
+  document.getElementById('b-info').innerHTML=`Showing <b>${data.length}</b> players · <b>${rows.length}</b> rows · Min. <b>${mpa} PA</b>`;
 
   document.getElementById('b-thead').innerHTML=`<tr>
-    <th data-k="rank">#</th><th data-k="batter">Jogador</th>
+    <th data-k="rank">#</th><th data-k="batter">Player</th>
     <th data-k="PA">PA</th><th data-k="AB">AB</th><th data-k="H">H</th>
     <th data-k="doubles">2B</th><th data-k="triples">3B</th><th data-k="HR">HR</th>
     <th data-k="RBI">RBI</th><th data-k="BB">BB</th><th data-k="IBB">IBB</th>
@@ -355,6 +381,7 @@ function renderPit(){
   const gt=document.getElementById('p-gt').value;
   const tm=document.getElementById('p-tm').value;
   const ft=document.getElementById('p-ft').value;
+  const vn=document.getElementById('p-vn').value;
   const ph=document.getElementById('p-ph').value;
   const sp=document.getElementById('p-sp').value;
   const mo=document.getElementById('p-mo').value;
@@ -363,9 +390,9 @@ function renderPit(){
 
   let rows=PRAW.filter(r=>
     (!q||r.pitcher.toLowerCase().includes(q))&&
-    (!season||String(r.season)===season)&&(!ref||String(r.ref)===ref)&&
+    (!season||season==='all'||String(r.season)===season)&&(!ref||String(r.ref)===ref)&&
     (!gt||(gt==='R'?r.game_type==='R':r.game_type!=='R'))&&
-    (!tm||r.fielding_team===tm)&&(!ft||r.batting_team===ft)&&
+    (!tm||r.fielding_team===tm)&&(!ft||r.batting_team===ft)&&(!vn||r.venue===vn)&&
     (!ph||r.pitch_hand===ph)&&(!sp||r.pitcher_split===sp)&&
     (!mo||r.men_on_base===mo)&&(!ha||r.home_away_pitching===ha)
   );
@@ -377,7 +404,7 @@ function renderPit(){
     return sortPitAsc?(av>bv?1:-1):(av<bv?1:-1);
   });
 
-  document.getElementById('p-info').innerHTML=`Exibindo <b>${data.length}</b> pitchers · <b>${rows.length}</b> linhas · Mín. <b>${mbf} BF</b>`;
+  document.getElementById('p-info').innerHTML=`Showing <b>${data.length}</b> pitchers · <b>${rows.length}</b> rows · Min. <b>${mbf} BF</b>`;
 
   document.getElementById('p-thead').innerHTML=`<tr>
     <th data-k="rank">#</th><th data-k="pitcher">Pitcher</th>
@@ -442,10 +469,10 @@ themeToggle.addEventListener('click', ()=>{
   applyTheme(cur==='light' ? 'dark' : 'light');
 });
 
-['b-q','b-season','b-ref','b-gt','b-tm','b-ft','b-bs','b-sp','b-mo','b-ha','b-mpa'].forEach(id=>
+['b-q','b-ref','b-gt','b-tm','b-ft','b-vn','b-bs','b-sp','b-mo','b-ha','b-mpa'].forEach(id=>
   document.getElementById(id).addEventListener('input',renderBat)
 );
-['p-q','p-season','p-ref','p-gt','p-tm','p-ft','p-ph','p-sp','p-mo','p-ha','p-mbf'].forEach(id=>
+['p-q','p-ref','p-gt','p-tm','p-ft','p-vn','p-ph','p-sp','p-mo','p-ha','p-mbf'].forEach(id=>
   document.getElementById(id).addEventListener('input',renderPit)
 );
 
@@ -457,12 +484,14 @@ let currentSeason = '2026';
 async function switchSeason(season){
   currentSeason = season;
   document.getElementById('loading-bar').style.display = 'block';
-  document.getElementById('loading-bar').textContent = `Carregando temporada ${season}...`;
+  document.getElementById('loading-bar').textContent = season === 'all'
+    ? 'Loading all seasons...'
+    : `Loading ${season} season...`;
   try {
     await loadSeason(season);
   } catch(e) {
-    document.getElementById('loading-bar').textContent = 'Erro ao carregar dados.';
-    console.error('Erro ao carregar dados:', e);
+    document.getElementById('loading-bar').textContent = 'Error loading data.';
+    console.error('Error loading data:', e);
     return;
   }
   document.getElementById('loading-bar').style.display = 'none';
