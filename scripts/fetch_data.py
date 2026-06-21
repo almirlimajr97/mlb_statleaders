@@ -9,6 +9,7 @@ Uso:
 """
 
 import argparse
+import re
 import time
 import requests
 import pandas as pd
@@ -91,6 +92,7 @@ def get_play_by_play(game_pk: int) -> pd.DataFrame:
         splits  = matchup.get("splits", {})
 
         is_top        = about.get("isTopInning", True)
+        at_bat_index  = about.get("atBatIndex")
         batting_team  = away if is_top else home
         fielding_team = home if is_top else away
 
@@ -122,6 +124,7 @@ def get_play_by_play(game_pk: int) -> pd.DataFrame:
                 "game_pk":            game_pk,
                 "game_date":          g.get("officialDate"),
                 "season":             g.get("season"),
+                "at_bat_index":       at_bat_index,
                 "game_type":          game_type,
                 "series_description": series_description,
                 "ref":                g.get("officialDate", "")[:7].replace("-", ""),
@@ -161,15 +164,39 @@ def get_play_by_play(game_pk: int) -> pd.DataFrame:
             })
 
         # ── Baserunning com out ─────────────────────────────
+        # Não confiamos só no campo details.isOut da API para alguns
+        # eventos: encontramos um caso real ("Caught Stealing 3B" do
+        # Garrett Crochet em 2025-07-20, game_pk 777075) onde a API retorna
+        # isOut=false numa jogada que é INEQUIVOCAMENTE um out pelo próprio
+        # nome do evento (Caught Stealing/Pickoff/Runner Out só acontecem
+        # quando o corredor é eliminado — não existe versão "sem sucesso"
+        # desses eventos específicos, diferente de Stolen Base).
+        #
+        # Já Wild Pitch e Balk são diferentes: na maioria das vezes NÃO são
+        # out (só avanço de corredores), mas raramente podem resultar em
+        # out (ex: corredor tenta avançar demais e é eliminado). Para esses
+        # dois, continuamos exigindo isOut=true da API, já que usar só o
+        # nome do evento inflaria os outs nos ~99% dos casos sem out.
+        ALWAYS_OUT_EVENTS      = re.compile(r"Caught Stealing|Pickoff|Runner Out")
+        SOMETIMES_OUT_EVENTS   = re.compile(r"Wild Pitch|Balk")
         for event in all_events:
-            if event.get("type") == "action" and event.get("details", {}).get("isOut"):
-                details_a = event.get("details", {})
+            if event.get("type") != "action":
+                continue
+            details_a = event.get("details", {})
+            event_name = details_a.get("event") or ""
+            is_out_flag = bool(details_a.get("isOut"))
+
+            is_always_out    = bool(ALWAYS_OUT_EVENTS.search(event_name))
+            is_sometimes_out = bool(SOMETIMES_OUT_EVENTS.search(event_name)) and is_out_flag
+
+            if is_always_out or is_sometimes_out:
                 count_a   = event.get("count", {})
                 rows.append({
                     "record_type":        "baserunning",
                     "game_pk":            game_pk,
                     "game_date":          g.get("officialDate"),
                     "season":             g.get("season"),
+                    "at_bat_index":       at_bat_index,
                     "game_type":          game_type,
                     "series_description": series_description,
                     "ref":                g.get("officialDate", "")[:7].replace("-", ""),
