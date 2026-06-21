@@ -72,6 +72,17 @@ def load_raw() -> pd.DataFrame:
         df["series_description"] = "Regular Season"
     else:
         df["series_description"] = df["series_description"].fillna("Regular Season")
+
+    # Arquivos raw diferentes podem ter salvo "season" com tipos distintos
+    # (int em alguns, string em outros — provável resíduo da migração para
+    # Parquet ou de diferenças na resposta da API entre coletas). Como o
+    # pandas não unifica tipos automaticamente no concat, isso faz com que
+    # comparações como `df["season"] == 2025` (int) silenciosamente
+    # ignorem linhas onde season ficou como "2025" (string) — foi a causa
+    # raiz de jogos de playoff sumirem do agregado final. Força um tipo
+    # único logo na carga, antes de qualquer outra operação.
+    df["season"] = pd.to_numeric(df["season"], errors="coerce").astype("Int64")
+
     return df
 
 
