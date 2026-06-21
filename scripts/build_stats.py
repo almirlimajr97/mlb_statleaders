@@ -91,6 +91,26 @@ def build_batters(df: pd.DataFrame) -> pd.DataFrame:
     """Agrega cubo de batters por jogo/situação."""
     df_bat = df[df["record_type"] == "pitch"].copy()
 
+    # Pré-calcula as colunas booleanas UMA VEZ, de forma vetorizada, em vez
+    # de rodar uma lambda por grupo dentro do groupby (que é centenas de
+    # vezes mais lento com datasets grandes — essa mudança reduziu o tempo
+    # de build_batters de ~3min para poucos segundos).
+    event = df_bat["event"]
+    is_excluded   = event.str.contains(EXCLUDE_PA, na=False)
+    event_notna   = event.notna()
+    df_bat["is_pa"]      = event_notna & ~is_excluded
+    df_bat["is_ab"]      = event_notna & ~event.isin(NOT_AB) & ~is_excluded
+    df_bat["is_hit"]     = event.isin(HITS)
+    df_bat["is_single"]  = event == "Single"
+    df_bat["is_double"]  = event == "Double"
+    df_bat["is_triple"]  = event == "Triple"
+    df_bat["is_hr"]      = event == "Home Run"
+    df_bat["is_bb"]      = event == "Walk"
+    df_bat["is_ibb"]     = event == "Intent Walk"
+    df_bat["is_so"]      = event == "Strikeout"
+    df_bat["is_hbp"]     = event == "Hit By Pitch"
+    df_bat["is_sf"]      = event == "Sac Fly"
+
     agg = (
         df_bat
         .groupby([
@@ -101,19 +121,19 @@ def build_batters(df: pd.DataFrame) -> pd.DataFrame:
             "venue", "day_night", "home_away_batting",
         ], dropna=False)
         .agg(
-            PA      =("event", lambda x: (x.notna() & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
-            AB      =("event", lambda x: (x.notna() & ~x.isin(NOT_AB) & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
-            H       =("event", lambda x: x.isin(HITS).sum()),
-            singles =("event", lambda x: (x == "Single").sum()),
-            doubles =("event", lambda x: (x == "Double").sum()),
-            triples =("event", lambda x: (x == "Triple").sum()),
-            HR      =("event", lambda x: (x == "Home Run").sum()),
-            RBI     =("rbi",   "sum"),
-            BB      =("event", lambda x: (x == "Walk").sum()),
-            IBB     =("event", lambda x: (x == "Intent Walk").sum()),
-            SO      =("event", lambda x: (x == "Strikeout").sum()),
-            HBP     =("event", lambda x: (x == "Hit By Pitch").sum()),
-            SF      =("event", lambda x: (x == "Sac Fly").sum()),
+            PA      =("is_pa",     "sum"),
+            AB      =("is_ab",     "sum"),
+            H       =("is_hit",    "sum"),
+            singles =("is_single", "sum"),
+            doubles =("is_double", "sum"),
+            triples =("is_triple", "sum"),
+            HR      =("is_hr",     "sum"),
+            RBI     =("rbi",       "sum"),
+            BB      =("is_bb",     "sum"),
+            IBB     =("is_ibb",    "sum"),
+            SO      =("is_so",     "sum"),
+            HBP     =("is_hbp",    "sum"),
+            SF      =("is_sf",     "sum"),
         )
         .reset_index()
     )
@@ -138,6 +158,24 @@ def build_pitchers(df: pd.DataFrame) -> pd.DataFrame:
         {"home": "away", "away": "home", "Home": "Away", "Away": "Home"}
     )
 
+    # Mesma otimização de build_batters: pré-calcula as colunas booleanas
+    # vetorizadas uma vez, em vez de uma lambda por grupo no groupby.
+    event = df_pit["event"]
+    is_excluded = event.str.contains(EXCLUDE_PA, na=False)
+    event_notna = event.notna()
+    df_pit["is_bf"]      = event_notna & ~is_excluded
+    df_pit["is_ab"]      = event_notna & ~event.isin(NOT_AB) & ~is_excluded
+    df_pit["is_hit"]     = event.isin(HITS)
+    df_pit["is_single"]  = event == "Single"
+    df_pit["is_double"]  = event == "Double"
+    df_pit["is_triple"]  = event == "Triple"
+    df_pit["is_hr"]      = event == "Home Run"
+    df_pit["is_bb"]      = event == "Walk"
+    df_pit["is_ibb"]     = event == "Intent Walk"
+    df_pit["is_so"]      = event == "Strikeout"
+    df_pit["is_hbp"]     = event == "Hit By Pitch"
+    df_pit["is_sf"]      = event == "Sac Fly"
+
     agg = (
         df_pit
         .groupby([
@@ -148,18 +186,18 @@ def build_pitchers(df: pd.DataFrame) -> pd.DataFrame:
             "venue", "day_night", "home_away_pitching",
         ], dropna=False)
         .agg(
-            BF        =("event",       lambda x: (x.notna() & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
-            AB        =("event",       lambda x: (x.notna() & ~x.isin(NOT_AB) & ~x.str.contains(EXCLUDE_PA, na=False)).sum()),
-            H         =("event",       lambda x: x.isin(HITS).sum()),
-            singles   =("event",       lambda x: (x == "Single").sum()),
-            doubles   =("event",       lambda x: (x == "Double").sum()),
-            triples   =("event",       lambda x: (x == "Triple").sum()),
-            HR        =("event",       lambda x: (x == "Home Run").sum()),
-            BB        =("event",       lambda x: (x == "Walk").sum()),
-            IBB       =("event",       lambda x: (x == "Intent Walk").sum()),
-            SO        =("event",       lambda x: (x == "Strikeout").sum()),
-            HBP       =("event",       lambda x: (x == "Hit By Pitch").sum()),
-            SF        =("event",       lambda x: (x == "Sac Fly").sum()),
+            BF        =("is_bf",       "sum"),
+            AB        =("is_ab",       "sum"),
+            H         =("is_hit",      "sum"),
+            singles   =("is_single",   "sum"),
+            doubles   =("is_double",   "sum"),
+            triples   =("is_triple",   "sum"),
+            HR        =("is_hr",       "sum"),
+            BB        =("is_bb",       "sum"),
+            IBB       =("is_ibb",      "sum"),
+            SO        =("is_so",       "sum"),
+            HBP       =("is_hbp",      "sum"),
+            SF        =("is_sf",       "sum"),
             total_outs=("total_outs",  "sum"),
         )
         .reset_index()
