@@ -494,7 +494,7 @@ function renderBat(){{
   let data=aggBat(rows).filter(a=>a.PA>=mpa);
   data.sort((a,b)=>{{let av=a[sortBatK],bv=b[sortBatK];if(typeof av==='string'){{av=av.toLowerCase();bv=bv.toLowerCase();}}return sortBatAsc?(av>bv?1:-1):(av<bv?1:-1);}});
 
-  document.getElementById('b-info').innerHTML=`Showing <b>${{data.length}}</b> players · <b>${{rows.length}}</b> rows · Min. <b>${{mpa}} PA</b>`;
+  document.getElementById('b-info').innerHTML=`Showing <b>${{data.length}}</b> players · Min. <b>${{mpa}} PA</b>`;
 
   document.getElementById('b-thead').innerHTML=`<tr>
     <th data-k="rank">#</th><th data-k="batter">Player</th>
@@ -566,7 +566,7 @@ function renderPit(){{
     return sortPitAsc?(av>bv?1:-1):(av<bv?1:-1);
   }});
 
-  document.getElementById('p-info').innerHTML=`Showing <b>${{data.length}}</b> pitchers · <b>${{rows.length}}</b> rows · Min. <b>${{mbf}} BF</b>`;
+  document.getElementById('p-info').innerHTML=`Showing <b>${{data.length}}</b> pitchers · Min. <b>${{mbf}} BF</b>`;
 
   document.getElementById('p-thead').innerHTML=`<tr>
     <th data-k="rank">#</th><th data-k="pitcher">Pitcher</th>
