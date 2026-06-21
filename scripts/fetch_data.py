@@ -19,6 +19,9 @@ from pathlib import Path
 # ── Configurações ──────────────────────────────────────────
 BASE_URL        = "https://statsapi.mlb.com/api/v1"
 FINAL_STATUSES  = {"Final", "Completed Early"}
+# R=Regular Season, F=Wild Card, D=Division Series, L=League Championship, W=World Series
+# (deixa de fora: S=Spring Training, A=All-Star, E=Exhibition)
+VALID_GAME_TYPES = {"R", "F", "D", "L", "W"}
 RAW_DIR         = Path(__file__).parent.parent / "data" / "raw"
 SESSION         = requests.Session()
 SESSION.headers.update({"User-Agent": "mlb-leaderboard/1.0"})
@@ -69,9 +72,11 @@ def get_play_by_play(game_pk: int) -> pd.DataFrame:
         timeout=10,
     )
     g = r_schedule.json()["dates"][0]["games"][0]
-    away  = g.get("teams", {}).get("away", {}).get("team", {}).get("name")
-    home  = g.get("teams", {}).get("home", {}).get("team", {}).get("name")
-    venue = g.get("venue", {}).get("name")
+    away      = g.get("teams", {}).get("away", {}).get("team", {}).get("name")
+    home      = g.get("teams", {}).get("home", {}).get("team", {}).get("name")
+    venue     = g.get("venue", {}).get("name")
+    game_type = g.get("gameType")
+    series_description = g.get("seriesDescription")
 
     # Busca play-by-play
     r = SESSION.get(f"{BASE_URL}/game/{game_pk}/playByPlay", timeout=10)
@@ -117,6 +122,8 @@ def get_play_by_play(game_pk: int) -> pd.DataFrame:
                 "game_pk":            game_pk,
                 "game_date":          g.get("officialDate"),
                 "season":             g.get("season"),
+                "game_type":          game_type,
+                "series_description": series_description,
                 "ref":                g.get("officialDate", "")[:7].replace("-", ""),
                 "venue":              venue,
                 "batting_team":       batting_team,
@@ -163,6 +170,8 @@ def get_play_by_play(game_pk: int) -> pd.DataFrame:
                     "game_pk":            game_pk,
                     "game_date":          g.get("officialDate"),
                     "season":             g.get("season"),
+                    "game_type":          game_type,
+                    "series_description": series_description,
                     "ref":                g.get("officialDate", "")[:7].replace("-", ""),
                     "venue":              venue,
                     "batting_team":       batting_team,
@@ -214,7 +223,11 @@ def main():
         return
 
     print(f"Buscando jogos de {game_date}...")
-    df_games = get_games(game_date)
+    try:
+        df_games = get_games(game_date)
+    except Exception as e:
+        print(f"  ⚠ Erro ao buscar schedule de {game_date}: {e}")
+        return
 
     if df_games.empty:
         print("Nenhum jogo encontrado.")
@@ -222,7 +235,8 @@ def main():
 
     df_games = df_games[
         (df_games["status"].isin(FINAL_STATUSES)) &
-        (df_games["game_type"] == "R")
+        (df_games["game_type"].isin(VALID_GAME_TYPES)) &
+        (df_games["game_date"] == game_date)
     ]
 
     if df_games.empty:
@@ -254,4 +268,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"⚠ Erro inesperado: {e}")
+        # Não propaga como exit code != 0 para não interromper reprocessamentos
+        # em lote (ex: workflow que itera sobre várias datas em sequência).

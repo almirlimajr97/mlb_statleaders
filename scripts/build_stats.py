@@ -47,6 +47,16 @@ def load_raw() -> pd.DataFrame:
     df = pd.concat(dfs, ignore_index=True)
     print(f"  Total de linhas: {len(df)}")
 
+    # Alguns jogos (geralmente os que terminam perto da meia-noite) podem
+    # ter sido coletados duas vezes em arquivos raw de datas adjacentes,
+    # por uma inconsistência já corrigida no fetch_data.py. Remove
+    # duplicatas exatas para não inflar PA/AB/BF.
+    n_before = len(df)
+    df = df.drop_duplicates()
+    n_removed = n_before - len(df)
+    if n_removed > 0:
+        print(f"  ⚠ Removidas {n_removed} linha(s) duplicada(s) (jogos coletados 2x em arquivos raw distintos).")
+
     # Arquivos raw antigos (gerados antes da coluna game_type existir) não
     # têm essa coluna. Garante que ela sempre exista, tratando ausência
     # como Regular Season (comportamento padrão antes dos playoffs serem
