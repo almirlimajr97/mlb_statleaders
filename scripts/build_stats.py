@@ -55,6 +55,13 @@ def load_raw() -> pd.DataFrame:
         df["game_type"] = "R"
     else:
         df["game_type"] = df["game_type"].fillna("R")
+
+    # Mesma lógica para series_description: arquivos antigos não têm essa
+    # coluna, então preenchemos com um valor padrão razoável.
+    if "series_description" not in df.columns:
+        df["series_description"] = "Regular Season"
+    else:
+        df["series_description"] = df["series_description"].fillna("Regular Season")
     return df
 
 
@@ -77,7 +84,7 @@ def build_batters(df: pd.DataFrame) -> pd.DataFrame:
     agg = (
         df_bat
         .groupby([
-            "season", "ref", "game_pk", "game_date", "game_type",
+            "season", "ref", "game_pk", "game_date", "game_type", "series_description",
             "batting_team", "fielding_team",
             "batter", "batter_id", "bat_side", "batter_split",
             "men_on_base", "pitcher", "pitcher_id",
@@ -124,7 +131,7 @@ def build_pitchers(df: pd.DataFrame) -> pd.DataFrame:
     agg = (
         df_pit
         .groupby([
-            "season", "ref", "game_pk", "game_date", "game_type",
+            "season", "ref", "game_pk", "game_date", "game_type", "series_description",
             "fielding_team", "batting_team",
             "pitcher", "pitcher_id", "pitch_hand", "pitcher_split",
             "men_on_base", "batter",
