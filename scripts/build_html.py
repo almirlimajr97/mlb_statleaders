@@ -86,8 +86,8 @@ def load_data():
 
 
 def build_html(db: pd.DataFrame, dp: pd.DataFrame):
-    MIN_PA_KPI = 100
-    MIN_BF_KPI = 100
+    MIN_PA_KPI = 200
+    MIN_BF_KPI = 200
 
     seasons = sorted(set(
         db["season"].dropna().astype(int).unique().tolist() +
@@ -122,7 +122,7 @@ def build_html(db: pd.DataFrame, dp: pd.DataFrame):
   --border:#1C2533; --border2:#26313F;
   --text:#E8EAED; --text2:#7A8699; --text3:#4A5568;
   --accent:#FF6B35; --accent-dim:#7A3D24;
-  --hi:#3DDC97; --hi-dim:#1E5C44; --md:#E0A847; --lo:#7A8699;
+  --hi:#3DDC97; --hi-dim:#1E5C44; --md:#E0A847; --lo:#7A8699; --bad:#E5484D;
   --row-hover:#131B28;
   --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
 }}
@@ -131,7 +131,7 @@ def build_html(db: pd.DataFrame, dp: pd.DataFrame):
   --border:#E2E0DA; --border2:#D2CFC6;
   --text:#1A1D23; --text2:#6B7280; --text3:#9CA3AF;
   --accent:#D8500F; --accent-dim:#FBE2D3;
-  --hi:#0F9D63; --hi-dim:#D7F2E5; --md:#B45309; --lo:#9CA3AF;
+  --hi:#0F9D63; --hi-dim:#D7F2E5; --md:#B45309; --lo:#9CA3AF; --bad:#C53030;
   --row-hover:#FBFAF8;
 }}
 *{{box-sizing:border-box;margin:0;padding:0}}
@@ -206,7 +206,7 @@ tbody tr:hover{{background:var(--row-hover)}}
 tbody tr:nth-child(even){{background:rgba(128,128,128,.02)}}
 .hi{{color:var(--hi);font-weight:600}}
 .md{{color:var(--md);font-weight:500}}
-.lo{{color:var(--text2)}}
+.lo{{color:var(--bad)}}
 .empty{{text-align:center;color:var(--text3);padding:3rem;font-size:14px;font-family:var(--mono)}}
 </style>
 </head>
@@ -417,7 +417,9 @@ function aggBat(rows){{
     const slg=a.AB>0?(a.singles+2*a.doubles+3*a.triples+4*a.HR)/a.AB:0;
     const bbpct=a.PA>0?a.BB/a.PA:0;
     const kpct=a.PA>0?a.SO/a.PA:0;
-    return {{...a,G:a.games.size,AVG:+avg.toFixed(3),OBP:+obp.toFixed(3),SLG:+slg.toFixed(3),OPS:+(obp+slg).toFixed(3),BBpct:+bbpct.toFixed(3),Kpct:+kpct.toFixed(3)}};
+    const babipDenom=a.AB-a.SO-a.HR+a.SF;
+    const babip=babipDenom>0?(a.H-a.HR)/babipDenom:0;
+    return {{...a,G:a.games.size,AVG:+avg.toFixed(3),OBP:+obp.toFixed(3),SLG:+slg.toFixed(3),OPS:+(obp+slg).toFixed(3),BBpct:+bbpct.toFixed(3),Kpct:+kpct.toFixed(3),BABIP:+babip.toFixed(3)}};
   }});
 }}
 
@@ -478,9 +480,9 @@ function renderKPIs(){{
 
   document.getElementById('kpi-pit').innerHTML = [
     kpiCard('Innings (IP)','ti-clock',top5(pitAgg,'outs'),'outs',v=>fmtIP(v)),
+    kpiCard('WHIP (lowest)','ti-shield',top5(pitAgg,'WHIP',true),'WHIP',v=>v.toFixed(2)),
     kpiCard('OPS against (lowest)','ti-shield-check',top5(pitAgg,'OPS',true),'OPS',fmt3),
     kpiCard('K%','ti-percentage',top5(pitAgg,'Kpct'),'Kpct',fmtPct),
-    kpiCard('WHIP (lowest)','ti-shield',top5(pitAgg,'WHIP',true),'WHIP',v=>v.toFixed(2)),
   ].join('');
 }}
 
@@ -519,8 +521,8 @@ function renderBat(){{
     <th data-k="doubles">2B</th><th data-k="triples">3B</th><th data-k="HR">HR</th>
     <th data-k="RBI">RBI</th><th data-k="BB">BB</th><th data-k="IBB">IBB</th>
     <th data-k="SO">K</th><th data-k="HBP">HBP</th><th data-k="SF">SF</th>
-    <th data-k="AVG">AVG</th><th data-k="OBP">OBP</th><th data-k="SLG">SLG</th><th data-k="OPS">OPS</th>
-    <th data-k="BBpct">BB%</th><th data-k="Kpct">K%</th>
+    <th data-k="AVG">AVG</th><th data-k="OBP">OBP</th><th data-k="SLG">SLG</th>
+    <th data-k="OPS">OPS</th><th data-k="BABIP">BABIP</th><th data-k="BBpct">BB%</th><th data-k="Kpct">K%</th>
   </tr>`;
   bindSortBat();
 
@@ -537,6 +539,7 @@ function renderBat(){{
     <td class="${{cls(d.OBP,.36,.30)}}">${{fmt3(d.OBP)}}</td>
     <td class="${{cls(d.SLG,.45,.35)}}">${{fmt3(d.SLG)}}</td>
     <td class="${{cls(d.OPS,.9,.7)}}">${{fmt3(d.OPS)}}</td>
+    <td class="${{cls(d.BABIP,.320,.290)}}">${{fmt3(d.BABIP)}}</td>
     <td class="${{cls(d.BBpct,.12,.07)}}">${{fmtPct(d.BBpct)}}</td>
     <td class="${{cls(d.Kpct,.18,.30,true)}}">${{fmtPct(d.Kpct)}}</td>
   </tr>`).join('');
@@ -594,8 +597,8 @@ function renderPit(){{
     <th data-k="H">H</th><th data-k="doubles">2B</th><th data-k="triples">3B</th><th data-k="HR">HR</th>
     <th data-k="BB">BB</th><th data-k="IBB">IBB</th><th data-k="SO">K</th>
     <th data-k="HBP">HBP</th><th data-k="SF">SF</th>
-    <th data-k="BAA">BAA</th><th data-k="OBP">OBP</th><th data-k="SLG">SLG</th><th data-k="OPS">OPS</th>
-    <th data-k="Kpct">K%</th><th data-k="BBpct">BB%</th><th data-k="WHIP">WHIP</th>
+    <th data-k="BAA">BAA</th><th data-k="OBP">OBP</th><th data-k="SLG">SLG</th>
+    <th data-k="OPS">OPS</th><th data-k="WHIP">WHIP</th><th data-k="BBpct">BB%</th><th data-k="Kpct">K%</th>
   </tr>`;
   bindSortPit();
 
@@ -612,9 +615,9 @@ function renderPit(){{
     <td class="${{cls(d.OBP,.30,.36,true)}}">${{fmt3(d.OBP)}}</td>
     <td class="${{cls(d.SLG,.35,.45,true)}}">${{fmt3(d.SLG)}}</td>
     <td class="${{cls(d.OPS,.7,.9,true)}}">${{fmt3(d.OPS)}}</td>
-    <td class="${{cls(d.Kpct,.25,.18)}}">${{fmtPct(d.Kpct)}}</td>
-    <td class="${{cls(d.BBpct,.08,.1,true)}}">${{fmtPct(d.BBpct)}}</td>
     <td class="${{cls(d.WHIP,1.10,1.30,true)}}">${{d.WHIP.toFixed(2)}}</td>
+    <td class="${{cls(d.BBpct,.08,.1,true)}}">${{fmtPct(d.BBpct)}}</td>
+    <td class="${{cls(d.Kpct,.25,.18)}}">${{fmtPct(d.Kpct)}}</td>
   </tr>`).join('');
 }}
 
