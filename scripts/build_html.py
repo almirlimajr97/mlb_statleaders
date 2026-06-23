@@ -214,7 +214,7 @@ tbody tr:nth-child(even){{background:rgba(128,128,128,.02)}}
 <body>
 <header>
   <div class="title-block">
-    <h1>LEADERBOARD·MLB</h1>
+    <h1>STATS LEADERS·MLB</h1>
     <span style="color:var(--text2);font-family:var(--mono);font-size:11px">2022—PRESENT</span>
   </div>
   <div class="last-updated"><span class="live-dot"></span>{last_updated}</div>
