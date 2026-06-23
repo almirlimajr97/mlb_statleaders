@@ -415,7 +415,7 @@ function aggBat(rows){{
     const avg=a.AB>0?a.H/a.AB:0;
     const obp=(a.AB+a.BB+a.IBB+a.HBP+a.SF)>0?(a.H+a.BB+a.IBB+a.HBP)/(a.AB+a.BB+a.IBB+a.HBP+a.SF):0;
     const slg=a.AB>0?(a.singles+2*a.doubles+3*a.triples+4*a.HR)/a.AB:0;
-    const bbpct=a.PA>0?a.BB/a.PA:0;
+    const bbpct=a.PA>0?(a.BB+a.IBB)/a.PA:0;
     const kpct=a.PA>0?a.SO/a.PA:0;
     const babipDenom=a.AB-a.SO-a.HR+a.SF;
     const babip=babipDenom>0?(a.H-a.HR)/babipDenom:0;
@@ -533,7 +533,7 @@ function renderBat(){{
     <td>${{i+1}}</td><td>${{d.batter}}</td>
     <td>${{d.PA}}</td><td>${{d.AB}}</td><td>${{d.H}}</td>
     <td>${{d.doubles}}</td><td>${{d.triples}}</td><td>${{d.HR}}</td>
-    <td>${{d.RBI}}</td><td>${{d.BB}}</td><td>${{d.IBB}}</td>
+    <td>${{d.RBI}}</td><td>${{d.BB+d.IBB}}</td><td>${{d.IBB}}</td>
     <td>${{d.SO}}</td><td>${{d.HBP}}</td><td>${{d.SF}}</td>
     <td class="${{cls(d.AVG,.3,.22)}}">${{fmt3(d.AVG)}}</td>
     <td class="${{cls(d.OBP,.36,.30)}}">${{fmt3(d.OBP)}}</td>
@@ -609,7 +609,7 @@ function renderPit(){{
     <td>${{i+1}}</td><td>${{d.pitcher}}</td>
     <td>${{d.G}}</td><td>${{d.IP}}</td><td>${{d.BF}}</td><td>${{d.AB}}</td>
     <td>${{d.H}}</td><td>${{d.doubles}}</td><td>${{d.triples}}</td><td>${{d.HR}}</td>
-    <td>${{d.BB}}</td><td>${{d.IBB}}</td><td>${{d.SO}}</td>
+    <td>${{d.BB+d.IBB}}</td><td>${{d.IBB}}</td><td>${{d.SO}}</td>
     <td>${{d.HBP}}</td><td>${{d.SF}}</td>
     <td class="${{cls(d.BAA,.22,.30,true)}}">${{fmt3(d.BAA)}}</td>
     <td class="${{cls(d.OBP,.30,.36,true)}}">${{fmt3(d.OBP)}}</td>
