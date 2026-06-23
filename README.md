@@ -1,6 +1,6 @@
-# MLB Leaderboard
+# MLB Stat Leaders
 
-A batting and pitching stats dashboard for MLB, automatically updated via GitHub Actions from the [MLB Stats API](https://statsapi.mlb.com).
+An MLB batting and pitching stats dashboard, automatically updated via GitHub Actions from the [MLB Stats API](https://statsapi.mlb.com).
 
 **🔗 [View the live dashboard](https://almirlimajr97.github.io/mlb_statleaders/)**
 
