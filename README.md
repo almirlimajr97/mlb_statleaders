@@ -57,6 +57,10 @@ The GitHub Actions workflow runs daily, collecting the previous day, re-aggregat
 - **Automation**: GitHub Actions
 - **Hosting**: GitHub Pages
 
+## Built with Claude
+
+This project was built with the help of [Claude](https://claude.ai/), Anthropic's AI assistant — from the data pipeline and aggregation logic to the dashboard design, bug fixes, and performance optimizations.
+
 ## Data source
 
 All data comes from the [MLB Stats API](https://statsapi.mlb.com), a public, unofficial API. This project is not affiliated with MLB.
