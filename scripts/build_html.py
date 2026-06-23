@@ -538,7 +538,7 @@ function renderBat(){{
     <td class="${{cls(d.AVG,.3,.22)}}">${{fmt3(d.AVG)}}</td>
     <td class="${{cls(d.OBP,.36,.30)}}">${{fmt3(d.OBP)}}</td>
     <td class="${{cls(d.SLG,.45,.35)}}">${{fmt3(d.SLG)}}</td>
-    <td class="${{cls(d.OPS,.9,.7)}}">${{fmt3(d.OPS)}}</td>
+    <td class="${{cls(d.OPS,.8,.7)}}">${{fmt3(d.OPS)}}</td>
     <td class="${{cls(d.BABIP,.320,.290)}}">${{fmt3(d.BABIP)}}</td>
     <td class="${{cls(d.BBpct,.12,.07)}}">${{fmtPct(d.BBpct)}}</td>
     <td class="${{cls(d.Kpct,.18,.30,true)}}">${{fmtPct(d.Kpct)}}</td>
@@ -614,7 +614,7 @@ function renderPit(){{
     <td class="${{cls(d.BAA,.22,.30,true)}}">${{fmt3(d.BAA)}}</td>
     <td class="${{cls(d.OBP,.30,.36,true)}}">${{fmt3(d.OBP)}}</td>
     <td class="${{cls(d.SLG,.35,.45,true)}}">${{fmt3(d.SLG)}}</td>
-    <td class="${{cls(d.OPS,.7,.9,true)}}">${{fmt3(d.OPS)}}</td>
+    <td class="${{cls(d.OPS,.7,.8,true)}}">${{fmt3(d.OPS)}}</td>
     <td class="${{cls(d.WHIP,1.10,1.30,true)}}">${{d.WHIP.toFixed(2)}}</td>
     <td class="${{cls(d.BBpct,.08,.1,true)}}">${{fmtPct(d.BBpct)}}</td>
     <td class="${{cls(d.Kpct,.25,.18)}}">${{fmtPct(d.Kpct)}}</td>
