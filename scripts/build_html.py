@@ -467,8 +467,8 @@ function top5(rows,key,asc=false){{
 
 function renderKPIs(){{
   const latestSeason = '{latest_season}';
-  const batScoped = batCache[latestSeason] || [];
-  const pitScoped = pitCache[latestSeason] || [];
+  const batScoped = (batCache[latestSeason] || []).filter(r=>r.game_type==='R');
+  const pitScoped = (pitCache[latestSeason] || []).filter(r=>r.game_type==='R');
   const batAgg = aggBat(batScoped).filter(a=>a.PA>=MIN_PA_KPI);
   const pitAgg = aggPit(pitScoped).filter(a=>a.BF>=MIN_BF_KPI);
 
