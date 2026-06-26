@@ -2,10 +2,10 @@ name: Update MLB Stats
 
 on:
   schedule:
-    # Roda todo dia às 10h UTC (7h horário de Brasília) — busca jogos do dia anterior
-    - cron: "0 10 * * *"
-    # Roda todo domingo às 11h UTC — reprocessa os últimos 7 dias
-    - cron: "0 11 * * 0"
+    # Roda todo dia às 8h UTC (5h horário de Brasília) — busca jogos do dia anterior
+    - cron: "0 8 * * *"
+    # Roda todo domingo às 9h UTC (6h horário de Brasília) — reprocessa os últimos 7 dias
+    - cron: "0 9 * * 0"
   workflow_dispatch:
     inputs:
       date:
