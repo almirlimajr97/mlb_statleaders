@@ -108,7 +108,7 @@ tbody tr:nth-child(even){background:rgba(128,128,128,.02)}
     <h1>STAT LEADERS·MLB</h1>
     <span style="color:var(--text2);font-family:var(--mono);font-size:11px">2022—PRESENT</span>
   </div>
-  <div class="last-updated"><span class="live-dot"></span>Jun 26 2026, 09:12</div>
+  <div class="last-updated"><span class="live-dot"></span>Jun 27 2026, 07:06</div>
   <nav>
     <button class="nav-btn active" data-page="overview">Overview</button>
     <button class="nav-btn" data-page="bat">Batters</button>
@@ -358,8 +358,8 @@ function top5(rows,key,asc=false){
 
 function renderKPIs(){
   const latestSeason = '2026';
-  const batScoped = batCache[latestSeason] || [];
-  const pitScoped = pitCache[latestSeason] || [];
+  const batScoped = (batCache[latestSeason] || []).filter(r=>r.game_type==='R');
+  const pitScoped = (pitCache[latestSeason] || []).filter(r=>r.game_type==='R');
   const batAgg = aggBat(batScoped).filter(a=>a.PA>=MIN_PA_KPI);
   const pitAgg = aggPit(pitScoped).filter(a=>a.BF>=MIN_BF_KPI);
 
