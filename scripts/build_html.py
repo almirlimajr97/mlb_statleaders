@@ -421,7 +421,7 @@ function aggBat(rows){{
     const kpct=a.PA>0?a.SO/a.PA:0;
     const babipDenom=a.AB-a.SO-a.HR+a.SF;
     const babip=babipDenom>0?(a.H-a.HR)/babipDenom:0;
-    return {{...a,G:a.games.size,teams:[...a.teams].join(' / '),AVG:+avg.toFixed(3),OBP:+obp.toFixed(3),SLG:+slg.toFixed(3),OPS:+(obp+slg).toFixed(3),BBpct:+bbpct.toFixed(3),Kpct:+kpct.toFixed(3),BABIP:+babip.toFixed(3),BBtotal:a.BB+a.IBB}};
+    return {{...a,G:a.games.size,teams:[...a.teams].join('<br>'),AVG:+avg.toFixed(3),OBP:+obp.toFixed(3),SLG:+slg.toFixed(3),OPS:+(obp+slg).toFixed(3),BBpct:+bbpct.toFixed(3),Kpct:+kpct.toFixed(3),BABIP:+babip.toFixed(3),BBtotal:a.BB+a.IBB}};
   }});
 }}
 
@@ -446,7 +446,7 @@ function aggPit(rows){{
     const bbpct=a.BF>0?(a.BB+a.IBB)/a.BF:0;
     const ip=a.outs/3;
     const whip=ip>0?(a.BB+a.IBB+a.H)/ip:0;
-    return {{...a,G:a.games.size,teams:[...a.teams].join(' / '),IP:fmtIP(a.outs),BAA:+baa.toFixed(3),OBP:+obp.toFixed(3),SLG:+slg.toFixed(3),OPS:+(obp+slg).toFixed(3),Kpct:+kpct.toFixed(3),BBpct:+bbpct.toFixed(3),WHIP:+whip.toFixed(2),BBtotal:a.BB+a.IBB}};
+    return {{...a,G:a.games.size,teams:[...a.teams].join('<br>'),IP:fmtIP(a.outs),BAA:+baa.toFixed(3),OBP:+obp.toFixed(3),SLG:+slg.toFixed(3),OPS:+(obp+slg).toFixed(3),Kpct:+kpct.toFixed(3),BBpct:+bbpct.toFixed(3),WHIP:+whip.toFixed(2),BBtotal:a.BB+a.IBB}};
   }});
 }}
 
