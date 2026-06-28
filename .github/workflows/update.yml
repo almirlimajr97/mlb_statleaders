@@ -4,7 +4,7 @@ on:
   schedule:
     # Roda todo dia às 8h UTC (5h horário de Brasília) — busca jogos do dia anterior
     - cron: "0 8 * * *"
-    # Roda todo domingo às 9h UTC (6h horário de Brasília) — reprocessa os últimos 7 dias
+    # Roda todo domingo às 9h UTC (6h horário de Brasília) — reprocessa os últimos 10 dias
     - cron: "0 9 * * 0"
   workflow_dispatch:
     inputs:
@@ -13,7 +13,7 @@ on:
         required: false
         default: ""
       reprocess_days:
-        description: "Número de dias para reprocessar (padrão: 1). Use 7 para reprocessamento semanal."
+        description: "Número de dias para reprocessar (padrão: 1). Use 10 para reprocessamento semanal."
         required: false
         default: "1"
       start_date:
@@ -51,7 +51,6 @@ jobs:
           import os
           from datetime import date, timedelta
 
-          # Verifica se foi disparado manualmente com data específica
           manual_date = os.environ.get("MANUAL_DATE", "").strip()
           start_date  = os.environ.get("START_DATE", "").strip()
           end_date    = os.environ.get("END_DATE", "").strip()
@@ -60,27 +59,30 @@ jobs:
           is_sunday = date.today().weekday() == 6
 
           if start_date and end_date:
-              # Reprocessa um intervalo explícito (ex: temporada inteira)
               d0 = date.fromisoformat(start_date)
               d1 = date.fromisoformat(end_date)
               if d0 > d1:
                   d0, d1 = d1, d0
               n_days = (d1 - d0).days + 1
               dates = [(d0 + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(n_days)]
+              send_email = "false"
           elif manual_date:
               dates = [manual_date]
+              send_email = "true"
           elif is_sunday or reprocess_days > 1:
-              # Reprocessa os últimos N dias
               today = date.today()
-              n = reprocess_days if reprocess_days > 1 else 7
+              n = reprocess_days if reprocess_days > 1 else 10
               dates = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, n + 1)]
+              send_email = "false"
           else:
-              # Busca só ontem
               dates = [(date.today() - timedelta(days=1)).strftime("%Y-%m-%d")]
+              send_email = "true"
 
           print(f"Datas a processar ({len(dates)}): {dates[:5]}{'...' if len(dates) > 5 else ''}")
+          print(f"Enviar e-mail: {send_email}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"dates={','.join(dates)}\n")
+              f.write(f"send_email={send_email}\n")
           EOF
         env:
           MANUAL_DATE: ${{ github.event.inputs.date }}
@@ -121,9 +123,9 @@ jobs:
           git push
 
       - name: Enviar report diário por e-mail
-        if: github.event_name != 'schedule' || !contains(github.event.schedule, '0 9 * * 0')
+        if: steps.dates.outputs.send_email == 'true'
         run: |
-          DATE=$(python3 -c "from datetime import date, timedelta; print((date.today() - timedelta(days=1)).strftime('%Y-%m-%d'))")
+          DATE="${{ steps.dates.outputs.dates }}"
           python scripts/send_report.py --date "$DATE"
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
