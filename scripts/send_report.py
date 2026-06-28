@@ -172,9 +172,9 @@ def detect_highlights(bat_agg: pd.DataFrame, pit_agg: pd.DataFrame) -> list:
                     "detail": f"{row['pitcher']} ({row['fielding_team']}) — {row['IP']} IP, {int(row['H'])} H, {int(row['SO'])} K",
                     "pitcher": row["pitcher"], "team": row["fielding_team"],
                 })
-            if row["SO"] >= 10:
+            if row["SO"] > 10:
                 highlights.append({
-                    "type": "pit_explosion", "label": "Pitching explosion",
+                    "type": "pit_explosion", "label": "Pitching dominance",
                     "badge": f"{int(row['SO'])} K", "color": "pitching",
                     "detail": f"{row['pitcher']} ({row['fielding_team']}) — {int(row['SO'])} K in {row['IP']} IP",
                     "pitcher": row["pitcher"], "team": row["fielding_team"],
