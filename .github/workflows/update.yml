@@ -56,7 +56,7 @@ jobs:
           end_date    = os.environ.get("END_DATE", "").strip()
           reprocess_days_raw = os.environ.get("REPROCESS_DAYS", "").strip()
           reprocess_days = int(reprocess_days_raw) if reprocess_days_raw else 1
-          is_sunday = date.today().weekday() == 6
+          is_sunday_reprocess = os.environ.get("IS_SUNDAY_REPROCESS", "false").strip().lower() == "true"
 
           if start_date and end_date:
               d0 = date.fromisoformat(start_date)
@@ -69,7 +69,7 @@ jobs:
           elif manual_date:
               dates = [manual_date]
               send_email = "true"
-          elif is_sunday or reprocess_days > 1:
+          elif is_sunday_reprocess or reprocess_days > 1:
               today = date.today()
               n = reprocess_days if reprocess_days > 1 else 10
               dates = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, n + 1)]
@@ -89,6 +89,7 @@ jobs:
           REPROCESS_DAYS: ${{ github.event.inputs.reprocess_days }}
           START_DATE: ${{ github.event.inputs.start_date }}
           END_DATE: ${{ github.event.inputs.end_date }}
+          IS_SUNDAY_REPROCESS: ${{ github.event.schedule == '0 9 * * 0' }}
 
       - name: Buscar play-by-play
         run: |
