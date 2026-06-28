@@ -506,7 +506,7 @@ def send_email(html: str, game_date: str) -> bool:
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             json={
-                "from":    "Stat Leaders MLB <onboarding@resend.dev>",
+                "from":    "Stat Leaders · MLB <onboarding@resend.dev>",
                 "to":      [to_email],
                 "subject": f"⚾ MLB Daily Report · {date_fmt}",
                 "html":    html,
