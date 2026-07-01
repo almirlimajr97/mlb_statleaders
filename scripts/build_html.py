@@ -184,6 +184,7 @@ input::placeholder{{color:var(--text3)}}
 .kpi-row .name{{flex:1;color:var(--text);font-family:var(--mono)}}
 .kpi-row .val{{font-family:var(--mono);font-weight:600;color:var(--text)}}
 .kpi-row:first-child .val{{color:var(--accent)}}
+.kpi-empty{{font-size:11px;color:var(--text3);font-style:italic;padding:4px 0}}
 
 .info-bar{{font-family:var(--mono);font-size:11px;color:var(--text2);margin-bottom:10px}}
 footer{{height:52px;padding:0 1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:1.25rem;flex-wrap:nowrap;background:var(--surface);flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:20}}
@@ -453,13 +454,16 @@ function aggPit(rows){{
 const MIN_PA_KPI = {MIN_PA_KPI};
 const MIN_BF_KPI = {MIN_BF_KPI};
 
-function kpiCard(label, icon, sorted, key, fmt){{
-  return `<div class="kpi-card">
-    <div class="hd"><i class="ti ${{icon}}" aria-hidden="true"></i>${{label}}</div>
-    ${{sorted.map((d,i)=>`<div class="kpi-row">
+function kpiCard(label, icon, sorted, key, fmt, requiresThreshold=false){{
+  const empty = requiresThreshold && sorted.length===0
+    ? `<div class="kpi-empty">No player has reached the minimum threshold yet</div>`
+    : sorted.map((d,i)=>`<div class="kpi-row">
       <span class="rank">${{i+1}}</span><span class="name">${{d.batter||d.pitcher}}</span>
       <span class="val">${{fmt(d[key])}}</span>
-    </div>`).join('')}}
+    </div>`).join('');
+  return `<div class="kpi-card">
+    <div class="hd"><i class="ti ${{icon}}" aria-hidden="true"></i>${{label}}</div>
+    ${{empty}}
   </div>`;
 }}
 
@@ -475,7 +479,7 @@ function renderKPIs(){{
   const pitAgg = aggPit(pitScoped).filter(a=>a.BF>=MIN_BF_KPI);
 
   document.getElementById('kpi-bat').innerHTML = [
-    kpiCard('OPS','ti-bolt',top5(batAgg,'OPS'),'OPS',fmt3),
+    kpiCard('OPS','ti-bolt',top5(batAgg,'OPS'),'OPS',fmt3,true),
     kpiCard('Hits (H)','ti-baseball-bat',top5(batAgg,'H'),'H',v=>v),
     kpiCard('Home runs','ti-ball-baseball',top5(batAgg,'HR'),'HR',v=>v),
     kpiCard('RBI','ti-flag',top5(batAgg,'RBI'),'RBI',v=>v),
@@ -483,9 +487,9 @@ function renderKPIs(){{
 
   document.getElementById('kpi-pit').innerHTML = [
     kpiCard('Innings (IP)','ti-clock',top5(pitAgg,'outs'),'outs',v=>fmtIP(v)),
-    kpiCard('WHIP (lowest)','ti-shield',top5(pitAgg,'WHIP',true),'WHIP',v=>v.toFixed(2)),
-    kpiCard('OPS against (lowest)','ti-shield-check',top5(pitAgg,'OPS',true),'OPS',fmt3),
-    kpiCard('K%','ti-percentage',top5(pitAgg,'Kpct'),'Kpct',fmtPct),
+    kpiCard('WHIP (lowest)','ti-shield',top5(pitAgg,'WHIP',true),'WHIP',v=>v.toFixed(2),true),
+    kpiCard('OPS against (lowest)','ti-shield-check',top5(pitAgg,'OPS',true),'OPS',fmt3,true),
+    kpiCard('K%','ti-percentage',top5(pitAgg,'Kpct'),'Kpct',fmtPct,true),
   ].join('');
 }}
 
