@@ -311,7 +311,7 @@ def rows_pit_ip(pit_agg: pd.DataFrame, highlights: list) -> str:
         f'{r["pitcher"]}{pitcher_badge(r["pitcher"], highlights)}',
         r["fielding_team"],
         f'{r["IP"]} IP',
-        f'{int(r["SO"])} K &middot; {int(r["H"])} H',
+        f'{int(r["H"])} H &middot; {int(r["SO"])} K',
         last=(i == len(top)-1)
     ) for i, r in top.iterrows())
 
